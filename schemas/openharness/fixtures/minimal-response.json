@@ -1,0 +1,16 @@
+{
+  "protocol_version": "1.0.0",
+  "request_id": "req_minimal_001",
+  "supported_protocol_versions": ["1.0.0"],
+  "response": {
+    "status": "success",
+    "action_directives": [
+      {
+        "action_type": "render_message",
+        "payload": {
+          "text": "Hello, OpenHarness."
+        }
+      }
+    ]
+  }
+}

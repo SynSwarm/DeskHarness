@@ -1,0 +1,14 @@
+{
+  "protocol_version": "1.0.0",
+  "request_id": "req_minimal_001",
+  "request": {
+    "auth": {
+      "tenant_id": "tenant_demo",
+      "credential_ref": "cred_ref_demo"
+    },
+    "context": {
+      "session_id": "sess_demo",
+      "user_intent": "Hello, OpenHarness."
+    }
+  }
+}

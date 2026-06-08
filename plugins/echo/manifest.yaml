@@ -1,0 +1,12 @@
+plugin_id: echo
+plugin_type: plugin
+version: 0.1.0
+api_version: "0.2"
+execution:
+  mode: local-script
+entry: handler:echo
+commands:
+  - name: echo
+    target: "回显输入参数"
+verification:
+  mode: self_report

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deskharness.dev/schemas/brain-request.v0.2.json",
+  "title": "BrainRequest",
+  "type": "object",
+  "required": ["request_version", "trace_id", "turn_id", "session_id", "input"],
+  "properties": {
+    "request_version": { "type": "string", "const": "0.2" },
+    "trace_id": { "type": "string" },
+    "turn_id": { "type": "string" },
+    "session_id": { "type": "string" },
+    "input": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "type": "string" },
+        "text": { "type": "string" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "properties": {
+        "recent_turns": { "type": "array" },
+        "session_vars": { "type": "object" }
+      }
+    },
+    "available_intents": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deskharness.dev/schemas/openharness/invoke-request.v1.json",
+  "title": "OpenHarness Invoke Request (OH-1 subset)",
+  "description": "OpenHarness invoke request (v1 subset). Aligned with OpenHarness examples/minimal/request.json.",
+  "type": "object",
+  "required": ["protocol_version", "request_id", "request"],
+  "additionalProperties": true,
+  "properties": {
+    "protocol_version": { "type": "string", "const": "1.0.0" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "correlation_id": { "type": "string" },
+    "request": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "auth": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "tenant_id": { "type": "string" },
+            "credential_ref": { "type": "string" }
+          }
+        },
+        "context": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "session_id": { "type": "string" },
+            "user_intent": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

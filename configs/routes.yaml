@@ -1,0 +1,59 @@
+routing:
+  mode: brain_led
+  export_intents_to_brain: true
+  allowed_plugins:
+    - order-lookup
+    - noop
+    - echo
+  intent_descriptions:
+    order.query: "用户想查询订单状态"
+    order.cancel: "用户想取消订单"
+    general.chat: "普通闲聊"
+    system.unknown: "无法识别意图"
+
+routes:
+  - match:
+      intent: order.query
+    when: "$verification.evidence.status != null"
+    plugin:
+      plugin_id: order-lookup
+      command: query
+      param_mapping:
+        order_id: "$entities.order_id"
+
+  - match:
+      intent: order.query
+    when: "$verification.passed == false"
+    reply:
+      text: "未找到该订单，请核对订单号。"
+    plugin: null
+
+  - match:
+      intent: order.cancel
+    plugin:
+      plugin_id: order-lookup
+      command: cancel
+      param_mapping:
+        order_id: "$entities.order_id"
+      require_confirmation: true
+
+  - match:
+      intent: general.chat
+    plugin: null
+
+  - match:
+      intent: system.unknown
+    plugin:
+      plugin_id: noop
+    reply:
+      text: "抱歉，我没有理解您的意思，请换个说法试试。"
+
+fallback:
+  on_brain_timeout:
+    reply: "系统繁忙，请稍后再试。"
+  on_brain_error:
+    reply: "处理出现问题，请稍后重试。"
+  on_plugin_failure:
+    strategy: read_verification
+  on_target_unmet:
+    strategy: brain_verify

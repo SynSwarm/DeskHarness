@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deskharness.dev/schemas/plugin-command.v0.2.json",
+  "title": "PluginCommand",
+  "type": "object",
+  "required": ["command_version", "trace_id", "turn_id", "plugin_id", "command"],
+  "properties": {
+    "command_version": { "type": "string", "const": "0.2" },
+    "trace_id": { "type": "string" },
+    "turn_id": { "type": "string" },
+    "plugin_id": { "type": "string" },
+    "command": { "type": "string" },
+    "params": { "type": "object" },
+    "session_vars": { "type": "object" }
+  }
+}

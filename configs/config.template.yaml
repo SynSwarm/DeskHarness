@@ -1,0 +1,41 @@
+# DeskHarness 配置模板
+
+# 1. 复制为 configs/config.yaml（本地私有，已 .gitignore）
+# 2. 敏感项走环境变量或本地密钥管理，勿提交 Git
+
+engine:
+  dev_mode: true
+  listen:
+    host: "127.0.0.1"
+    port: 8080
+  openharness:
+    path_prefix: "/openharness"
+    invoke_mode: turn
+    supported_protocol_versions:
+      - "1.0.0"
+  plugin_dirs:
+    - ./plugins
+  session:
+    backend: embedded_sqlite
+    store_path: ./memory/sessions/deskharness.db
+    ttl_hours: 168
+
+brain:
+  adapter: mock
+  # adapter: prompt-template
+  # template_file: ./configs/brain.prompt-template.yaml
+  endpoint: "http://127.0.0.1:8090/brain"
+  timeout_ms: 30000
+
+routing:
+  mode: brain_led
+  export_intents_to_brain: true
+  routes_file: ./configs/routes.yaml
+  allowed_plugins:
+    - order-lookup
+    - noop
+    - echo
+
+logging:
+  level: info
+  path: ./memory/logs

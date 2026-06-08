@@ -1,0 +1,12 @@
+plugin_id: noop
+plugin_type: plugin
+version: 0.1.0
+api_version: "0.2"
+execution:
+  mode: local-script
+commands:
+  - name: ping
+    target: "健康检查"
+verification:
+  mode: self_report
+entry: handler:ping

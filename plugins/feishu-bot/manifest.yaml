@@ -1,0 +1,8 @@
+plugin_id: feishu-bot
+plugin_type: shell
+version: 0.1.0
+api_version: "0.2"
+entry: adapter:FeishuShell
+capabilities:
+  inbound_types: [text, image, event]
+  outbound_types: [text, rich]

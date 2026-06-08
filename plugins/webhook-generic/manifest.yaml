@@ -1,0 +1,8 @@
+plugin_id: webhook-generic
+plugin_type: shell
+version: 0.1.0
+api_version: "0.2"
+entry: adapter:WebhookShell
+capabilities:
+  inbound_types: [text, event]
+  outbound_types: [text, json]

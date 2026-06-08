@@ -69,7 +69,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+doc/_build/
 
 # PyBuilder
 .pybuilder/
@@ -216,3 +216,13 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# DeskHarness — local-only (not published to GitHub)
+.cursor/
+doc/roles/
+doc/private/
+configs/config.yaml
+memory/sessions/*
+memory/logs/*
+!memory/sessions/.gitkeep
+!memory/logs/.gitkeep

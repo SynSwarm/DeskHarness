@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://deskharness.dev/schemas/plugin-result.v0.2.json",
+  "title": "PluginResult",
+  "type": "object",
+  "required": ["result_version", "trace_id", "status", "verification"],
+  "properties": {
+    "result_version": { "type": "string", "const": "0.2" },
+    "trace_id": { "type": "string" },
+    "status": { "type": "string", "enum": ["success", "failure", "partial"] },
+    "verification": {
+      "type": "object",
+      "required": ["passed", "evidence"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "evidence": { "type": "object" },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "passed": { "type": "boolean" }
+            }
+          }
+        },
+        "failure_reason": { "type": ["string", "null"] }
+      }
+    },
+    "error": { "type": ["object", "null"] },
+    "reply_override": { "type": ["object", "null"] }
+  }
+}

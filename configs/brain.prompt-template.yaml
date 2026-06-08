@@ -1,0 +1,46 @@
+# prompt-template Brain（Phase 2 · 零 LLM 模板路由）
+# 用法：configs/config.yaml 中 brain.adapter: prompt-template
+#       brain.template_file: ./configs/brain.prompt-template.yaml
+
+default_intent: general.chat
+default_confidence: 0.9
+default_reply: "You said: {text}"
+
+rules:
+  - id: noop
+    contains: trigger-noop
+    intent: system.unknown
+    confidence: 0.9
+    reply: "Running noop health check…"
+    plan:
+      - plugin_id: noop
+        command: ping
+
+  - id: echo
+    contains: trigger-echo
+    intent: general.chat
+    confidence: 0.95
+    reply: "Echoing…"
+    plan:
+      - plugin_id: echo
+        command: echo
+        params:
+          message: "{text_after_colon}"
+
+  - id: order_query
+    regex: "order\\s+(\\d+)"
+    intent: order.query
+    confidence: 0.92
+    reply: "Looking up order {order_id}…"
+    entities:
+      order_id: "{match_group_1}"
+    plan:
+      - plugin_id: order-lookup
+        command: query
+        params:
+          order_id: "{order_id}"
+
+  - id: general_chat
+    intent: general.chat
+    confidence: 0.95
+    reply: "{text}"

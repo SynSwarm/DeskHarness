@@ -1,0 +1,13 @@
+# 大脑引擎 HTTP 适配（Phase 1 mock 可指向 examples/minimal/mock-brain）
+
+adapter: http
+endpoint: "http://127.0.0.1:8090/brain"
+timeout_ms: 30000
+retry:
+  max_attempts: 2
+  backoff_ms: 500
+
+# 内置 adapter（Phase 2）
+# adapter: prompt-template
+# template_file: ./configs/brain.prompt-template.yaml
+# adapter: openai-compatible

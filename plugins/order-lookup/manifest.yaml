@@ -1,0 +1,19 @@
+plugin_id: order-lookup
+plugin_type: plugin
+version: 0.1.0
+api_version: "0.2"
+execution:
+  mode: sync-http
+  timeout_ms: 5000
+commands:
+  - name: query
+    target: "返回订单可读状态"
+    params_schema: schemas/query.json
+  - name: cancel
+    target: "取消订单"
+    params_schema: schemas/cancel.json
+verification:
+  mode: rule_verify
+exports:
+  - from: evidence.order_id
+    to: session_vars.last_order_id

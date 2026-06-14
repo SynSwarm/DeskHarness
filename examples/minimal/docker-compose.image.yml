@@ -1,9 +1,8 @@
+# Pull-only compose (no local build) — requires a published GHCR tag
+
 services:
   engine:
-    image: ghcr.io/synswarm/deskharness:latest
-    build:
-      context: ../..
-      dockerfile: Dockerfile
+    image: ghcr.io/synswarm/deskharness:${DESKHARNESS_TAG:-latest}
     ports:
       - "8080:8080"
     volumes:
@@ -14,14 +13,6 @@ services:
       interval: 10s
       timeout: 3s
       retries: 5
-
-  mock-brain:
-    profiles: ["http-brain"]
-    build:
-      context: ../..
-      dockerfile: examples/minimal/Dockerfile.mock-brain
-    ports:
-      - "8090:8090"
 
 volumes:
   deskharness-sessions:

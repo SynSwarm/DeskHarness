@@ -1,0 +1,13 @@
+plugin_id: async-demo
+plugin_type: plugin
+version: 0.1.0
+api_version: "0.2"
+execution:
+  mode: async-webhook
+  endpoint: "http://127.0.0.1:8092/plugins/async-demo"
+  timeout_ms: 5000
+commands:
+  - name: submit
+    target: "异步提交任务"
+verification:
+  mode: self_report

@@ -7,7 +7,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 PluginType = Literal["shell", "plugin"]
-ExecutionMode = Literal["local-script", "sync-http", "in-process"]
+ExecutionMode = Literal["local-script", "sync-http", "async-webhook", "in-process"]
 
 
 class CommandSpec(BaseModel):
@@ -23,6 +23,7 @@ class ExecutionSpec(BaseModel):
     mode: ExecutionMode = "local-script"
     timeout_ms: int = 5000
     endpoint: str | None = None
+    sandbox: bool = False
 
 
 class VerificationSpec(BaseModel):

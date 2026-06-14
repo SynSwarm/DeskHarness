@@ -19,23 +19,34 @@ from app.schemas.plugin import PluginCommand
 from app.schemas.session import Session
 from core.brain_client import BrainClient
 from core.dispatcher import PluginDispatcher
+from core.metrics import EngineMetrics
 from core.router import Router
-from core.session_store import SessionStore
+from core.runtime.compaction import compact_session_context
+from core.session.protocol import SessionStoreProtocol
+from core.structured_log import StructuredLogger
 
 
 class TurnEngine:
     def __init__(
         self,
         *,
-        session_store: SessionStore,
+        session_store: SessionStoreProtocol,
         brain_client: BrainClient,
         router: Router,
         dispatcher: PluginDispatcher,
+        logger: StructuredLogger | None = None,
+        metrics: EngineMetrics | None = None,
+        context_max_turns: int = 20,
+        context_keep_recent: int = 10,
     ) -> None:
         self._sessions = session_store
         self._brain = brain_client
         self._router = router
         self._dispatcher = dispatcher
+        self._logger = logger
+        self._metrics = metrics
+        self._context_max_turns = context_max_turns
+        self._context_keep_recent = context_keep_recent
 
     def process(self, body: dict[str, Any]) -> tuple[OpenHarnessInvokeResponse | OpenHarnessInvokeErrorResponse, int]:
         req = OpenHarnessInvokeRequest.model_validate(body)
@@ -46,6 +57,11 @@ class TurnEngine:
         ctx = oh_request.get("context") if isinstance(oh_request.get("context"), dict) else {}
 
         session = self._resolve_session(ctx)
+        compact_session_context(
+            session,
+            max_turns=self._context_max_turns,
+            keep_recent=self._context_keep_recent,
+        )
         turn_id = f"turn_{uuid4().hex[:12]}"
         trace_id = (req.correlation_id or req.request_id or turn_id).strip() or turn_id
         user_intent = str(ctx.get("user_intent") or "").strip()
@@ -65,6 +81,8 @@ class TurnEngine:
         try:
             brain_response = self._brain.complete(brain_request)
         except Exception:
+            if self._metrics:
+                self._metrics.inc_brain_error()
             text = self._router.brain_fallback_reply(on_timeout=False)
             return self._success(req, text, trace_id=trace_id), 200
 
@@ -75,10 +93,12 @@ class TurnEngine:
 
         steps = self._router.plan_steps_from_brain(brain_response)
         final_text = self._router.immediate_reply(decision) or user_intent or "Hello, OpenHarness."
+        plugin_ids: list[str] = []
 
         route_outcome = None
         if steps:
             for step in steps:
+                plugin_ids.append(step.plugin_id)
                 command = PluginCommand(
                     trace_id=trace_id,
                     turn_id=turn_id,
@@ -100,13 +120,25 @@ class TurnEngine:
                 elif result.reply_override and result.reply_override.get("text"):
                     final_text = str(result.reply_override["text"])
 
-            if not (route_outcome and route_outcome.reply_text):
+            if not (route_outcome and route_outcome.reply_text) and not result.verification.passed:
                 route_default = self._router.default_reply_for_intent(decision.intent)
                 if route_default:
                     final_text = route_default
 
         self._record_turn(session, turn_id=turn_id, trace_id=trace_id, user_intent=user_intent, reply=final_text)
         self._sessions.save(session)
+
+        if self._metrics:
+            self._metrics.inc_turn()
+        if self._logger:
+            self._logger.log_turn_completed(
+                trace_id=trace_id,
+                turn_id=turn_id,
+                session_id=session.session_id,
+                intent=decision.intent,
+                plugin_ids=plugin_ids,
+                reply=final_text,
+            )
 
         return self._success(req, final_text, trace_id=trace_id), 200
 

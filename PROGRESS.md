@@ -1,35 +1,57 @@
 # DeskHarness 进度与任务
 
-最后更新：2026-06-07 · **Phase 2 收束，暂停于 Phase 3 前**
+最后更新：2026-06-07 · **准备发布 v0.1.0**
 
 ## 当前阶段
 
-**Phase 2 — 插件体系 ✅** · 下一步 **Phase 3 生产就绪**
+**Phase 3 — 生产就绪 ✅ · 即将发布 v0.1.0 · Phase 4 下一步**
 
 ---
 
-## Phase 1 ✅
+## 发布清单（v0.1.0）
 
-| 范围 | 交付 |
+| 步骤 | 状态 |
 |------|------|
-| P1-0 ~ P1-7 | OH invoke · SQLite Session · Brain client · routes.yaml · noop dispatch · 契约测试 |
+| Phase 0–3 功能完成 | ✅ |
+| `pytest tests/ -q`（29 passed, 1 skipped） | ✅ |
+| `CHANGELOG.md` | ✅ |
+| 官方 Docker + CI publish workflow | ✅ |
+| 打 tag `v0.1.0` 并 push | ⬜ |
+| GHCR 包设为 Public | ⬜ |
+| GitHub Release 创建 | ⬜ |
+
+详细步骤见 [`doc/deployment/release.md`](doc/deployment/release.md)。
+
+```bash
+git tag -a v0.1.0 -m "DeskHarness v0.1.0 — Thin Engine Phase 0–3"
+git push origin v0.1.0
+gh release create v0.1.0 --title "v0.1.0 — Thin Engine" --notes-file CHANGELOG.md
+```
 
 ---
 
-## Phase 2 ✅
+## Phase 1 ✅ · Phase 2 ✅
 
-| ID | 任务 |
-|----|------|
-| P2-0 ~ P2-6 | manifest · PluginRegistry · pkg SDK · noop/echo · webhook Shell · 集成测试 |
-| P2-7 | `prompt-template` Brain · `configs/brain.prompt-template.yaml` |
-| P2-8 | `deskharness plugin new` |
-| P2-9 | `examples/minimal/` Dockerfile + docker-compose |
+见 [`CHANGELOG.md`](CHANGELOG.md) 与 git 历史。
 
 ---
 
-## Phase 3（未开始）
+## Phase 3 ✅
 
-Redis KV · sync-http 插件 · structured logging · metrics · `/debug/dry-run` — 见 [`doc/roadmap/phase-plan.md`](doc/roadmap/phase-plan.md)
+| ID | 任务 | 状态 |
+|----|------|------|
+| P3-0 | 结构化日志 `memory/logs/turns.jsonl` | ✅ |
+| P3-1 | `/metrics` Prometheus 计数 | ✅ |
+| P3-2 | Session Redis 后端（可选 `pip install deskharness[redis]`） | ✅ |
+| P3-3 | sync-http 插件 dispatch | ✅ |
+| P3-4 | `/debug/routes` · `/debug/dry-run` | ✅ |
+| P3-5 | mock order-lookup HTTP 示例 | ✅ |
+| P3-6 | 集成测试 | ✅ 29 passed |
+| P3-7 | async-webhook + `/plugins/callbacks/{task_id}` | ✅ |
+| P3-8 | local-script 超时 / subprocess 沙箱 | ✅ |
+| P3-9 | Context summarization | ✅ |
+| P3-10 | Rate limit | ✅ |
+| P3-11 | 官方 Docker 镜像（GHCR + CI） | ✅ |
 
 ---
 
@@ -37,16 +59,26 @@ Redis KV · sync-http 插件 · structured logging · metrics · `/debug/dry-run
 
 ```bash
 pip install -e ".[dev]"
-pytest tests/ -q          # 18 passed
+pytest tests/ -q
 deskharness serve
-
 curl -s localhost:8080/openharness/health
-curl -s -X POST localhost:8080/shells/webhook-generic/inbound \
-  -H 'Content-Type: application/json' \
-  -d '{"text":"Hello","session_id":"sess_demo"}'
-
-docker compose -f examples/minimal/docker-compose.yml up --build
-deskharness plugin new demo-bot --type plugin
+curl -s localhost:8080/metrics
 ```
 
-Stub 契约模式：`DH_OPENHARNESS_STUB_MODE=minimal_200` 或 `engine.openharness.invoke_mode: stub`
+Docker：
+
+```bash
+docker compose -f examples/minimal/docker-compose.yml up --build
+```
+
+完整命令见 [`examples/minimal/README.md`](examples/minimal/README.md)。
+
+---
+
+## 下一步（Phase 4）
+
+- `examples/feishu-order/` 飞书 + 订单查询端到端 Demo
+- `feishu-bot` / `telegram-bot` Shell
+- MkDocs 文档站
+
+见 [`doc/roadmap/phase-plan.md`](doc/roadmap/phase-plan.md)。

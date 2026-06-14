@@ -13,9 +13,13 @@
 | 5 | [扩展点](./extension/extension-points.md) | |
 | 6 | [插件 TPAVR（L1）](./extension/plugin-tpavr-guide.md) | |
 | 7 | [仓库结构 · STRUCTURE.md](../STRUCTURE.md) | |
-| 8 | [路线图](./roadmap/phase-plan.md) | Phase 1–2 ✅ · Phase 3 下一步 |
+| 8 | [路线图](./roadmap/phase-plan.md) | Phase 1–3 ✅ · v0.1.0 发布 |
+| — | [部署索引](./deployment/README.md) | Docker + 发布清单 |
+| — | [Docker 部署](./deployment/docker.md) | 官方 GHCR 镜像 |
+| — | [版本发布](./deployment/release.md) | v0.1.0 维护者清单 |
+| — | [CHANGELOG.md](../CHANGELOG.md) | 版本变更记录 |
 | — | [ADR-003](./adr/003-tpavr-adoption.md) · [ADR-004 Python](./adr/004-python-runtime.md) | |
-| — | [`PROGRESS.md`](../PROGRESS.md) | 实现进度与本地验证命令 |
+| — | [`PROGRESS.md`](../PROGRESS.md) | 实现进度与本地验证 |
 
 > 旧链 [desk-envelope.md](./specs/desk-envelope.md) 已废弃。
 

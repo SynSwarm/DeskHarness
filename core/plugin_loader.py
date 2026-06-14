@@ -95,10 +95,14 @@ class PluginRegistry:
                 if self.allowed_plugins and manifest.plugin_id not in self.allowed_plugins:
                     continue
 
-                if not (entry / "handler.py").is_file():
+                handlers: dict[str, HandlerFn] = {}
+                if manifest.execution_mode in ("sync-http", "async-webhook"):
+                    pass
+                elif (entry / "handler.py").is_file():
+                    handlers = self._load_plugin_handlers(entry, manifest)
+                else:
                     continue
 
-                handlers = self._load_plugin_handlers(entry, manifest)
                 self.plugins[manifest.plugin_id] = LoadedPlugin(
                     manifest=manifest,
                     root=entry,

@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![OpenHarness](https://img.shields.io/badge/Protocol-OpenHarness-green.svg)](https://github.com/SynSwarm/OpenHarness)
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg)](CHANGELOG.md)
 
 **Open-source Thin Harness Engine** — decouple **Shell**, **Engine**, **Brain**, and **plugins** with clear contracts.
 
@@ -28,7 +29,7 @@ Most projects slowly become monoliths — swap a channel and you rewrite Brain; 
 
 **Complementary, not competitive:** run LangChain (or any stack) as your Brain service, then plug it into DeskHarness for orchestration and contracts — keep your reasoning layer, lose the framework lock-in.
 
-**Status:** Phase 1 MVP and **Phase 2 plugin system** are done — plugin loader, `webhook-generic` Shell, `docker compose` minimal stack, and `deskharness plugin new`. Next: Phase 3 production hardening — see [Roadmap](#roadmap).
+**Status:** **v0.1.0 release candidate** — Phase 0–3 complete (Thin Engine production-ready). See [CHANGELOG](CHANGELOG.md) ([known limitations](CHANGELOG.md#known-limitations-v010)) and [Release checklist](doc/deployment/release.md). Phase 4 next: Feishu demo, docs site.
 
 ---
 
@@ -51,9 +52,20 @@ In multi-channel, multi-plugin setups, these guardrails keep the system from tur
 
 **T**arget · **P**lan · **A**ction · **V**erify · **R**oute is not just the shell around a Turn — it is a **fractal structure** from a plugin handler's internals, through a single command, up to a full conversation. Debug at any zoom level and you see the same skeleton. That consistency cuts cognitive load in large AI systems. See architecture [§8 TPAVR](doc/architecture/architecture.md#8-tpavrr-公理叙事脊梁).
 
+### Shipped in v0.1.0
+
+- **OpenHarness** invoke + **webhook-generic** Shell (`POST /shells/webhook-generic/inbound`)
+- **Plugin execution**: `local-script` · `sync-http` · `async-webhook` · `in-process` — built-ins: `noop` / `echo` / `order-lookup` / `async-demo`
+- **Brain adapters**: `mock` · `http` · `prompt-template` (rule-based YAML, no LLM)
+- **Ops & observability**: `/metrics` · turn audit logs · `/debug/routes` · `/debug/dry-run` · optional rate limit
+- **Session**: SQLite by default, optional Redis (`pip install deskharness[redis]`)
+- **Deployment**: official Docker image (`ghcr.io/synswarm/deskharness`) · `docker compose` example · `deskharness plugin new` scaffold
+
+**Planned for Phase 4:** `feishu-bot` Shell · `examples/feishu-order/` end-to-end demo · MkDocs site.
+
 ---
 
-## Quick Start (~30 seconds)
+## Quick Start
 
 Requires Python 3.11+.
 
@@ -82,7 +94,7 @@ curl -s -X POST http://127.0.0.1:8080/openharness/invoke \
   -H 'Content-Type: application/json' \
   -d '{"protocol_version":"1.0.0","request_id":"req_noop","request":{"context":{"session_id":"sess_noop","user_intent":"please trigger-noop"}}}'
 
-# Webhook Shell (Phase 2)
+# Webhook Shell
 curl -s -X POST http://127.0.0.1:8080/shells/webhook-generic/inbound \
   -H 'Content-Type: application/json' \
   -d '{"text":"Hello from webhook","session_id":"sess_demo"}'
@@ -99,6 +111,15 @@ pytest tests/ -q
 ```bash
 docker compose -f examples/minimal/docker-compose.yml up --build
 ```
+
+**Official image** (after a release tag is published to GHCR):
+
+```bash
+docker run -d -p 8080:8080 ghcr.io/synswarm/deskharness:latest
+# or: docker compose -f examples/minimal/docker-compose.image.yml up -d
+```
+
+See [`doc/deployment/docker.md`](doc/deployment/docker.md) for volumes, custom config, and maintainer publish steps.
 
 **Scaffold a plugin:**
 
@@ -153,10 +174,10 @@ flowchart LR
 
 | Layer | Role | Examples |
 |-------|------|----------|
-| **Shell** | Collect intent, render replies; channel adapters | `feishu-bot`, `webhook-generic` |
+| **Shell** | Collect intent, render replies; channel adapters | `webhook-generic` (shipped) · `feishu-bot` (Phase 4) |
 | **Engine** | OpenHarness endpoint, session, routing, plugin gateway | `app/` + `core/` |
 | **Brain** | LLM / RAG reasoning; outputs Target + Plan (T+P) | External HTTP service (LangChain works here) |
-| **Plugin** | Mechanical execution; Action + Verify (A+V) | `order-lookup`, `noop` |
+| **Plugin** | Mechanical execution; Action + Verify (A+V) | `noop` · `echo` · `order-lookup` · `async-demo` |
 
 **Rule of thumb:** Brain thinks, plugins act, Engine orchestrates. Shell only talks to Engine via [OpenHarness](https://github.com/SynSwarm/OpenHarness).
 
@@ -178,7 +199,7 @@ flowchart LR
 |-------------|--------------|
 | Multi-channel bots (Feishu, Telegram, webhooks) sharing one Brain | Drag-and-drop Agent builder (try Dify, Coze) |
 | Teams that want to swap LLM providers without rewriting plugins | All-in-one RAG + UI platform |
-| SME deployments: single process, SQLite, no K8s required | Complex multi-agent reasoning graphs |
+| SME deployments: single process, SQLite default / Redis optional, official Docker, no K8s required | Complex multi-agent reasoning graphs |
 | Headless integration into existing backends | Replacing LangChain inside your Brain layer |
 
 ---
@@ -195,7 +216,7 @@ DeskHarness **complements** Agent frameworks — it sits at the **integration an
 | **Channels** | Pluggable Shell plugins | Bring your own | Built-in apps | Connectors |
 | **Business logic** | Plugin layer (A+V) | Tools / custom code | Workflow nodes | Workflow nodes |
 | **Session truth** | Engine owns `session_id` | Varies by framework | Platform-managed | Per-workflow |
-| **Deployment** | Single process + KV | Library / varied | Managed or self-host | Self-host SaaS |
+| **Deployment** | Single process; SQLite / optional Redis; official Docker | Library / varied | Managed or self-host | Self-host SaaS |
 | **UI** | Headless (no UI) | None / optional | Full console | Visual editor |
 
 Agent frameworks answer *"how should the LLM reason?"*  
@@ -221,10 +242,10 @@ Engine does not think or act — it routes and holds session truth.
 | Phase 0 | Architecture, protocols, repo layout | ✅ Done |
 | Phase 1 | Engine MVP — invoke → Brain → plugin loop | ✅ Done |
 | Phase 2 | Plugin loader, Shell API, `docker compose`, scaffold CLI | ✅ Done |
-| Phase 3 | Production — Redis KV, Docker image, acceptance agent, metrics | 🚧 Next |
-| Phase 4 | Ecosystem — docs site, plugin SDK, more Shells | Planned |
+| Phase 3 | Logging, metrics, Redis session, sync-http, debug, Docker GHCR | ✅ Done |
+| Phase 4 | `feishu-order` demo, `feishu-bot` Shell, docs site, plugin SDK | 🚧 Next |
 
-Details: [`doc/roadmap/phase-plan.md`](./doc/roadmap/phase-plan.md) · Progress: [`PROGRESS.md`](./PROGRESS.md)
+Details: [`doc/roadmap/phase-plan.md`](./doc/roadmap/phase-plan.md) · Progress: [`PROGRESS.md`](./PROGRESS.md) · Changes: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ---
 
@@ -235,6 +256,10 @@ Details: [`doc/roadmap/phase-plan.md`](./doc/roadmap/phase-plan.md) · Progress:
 | Architecture (canonical) | [`doc/architecture/architecture.md`](./doc/architecture/architecture.md) |
 | OpenHarness protocol | [`doc/specs/openharness-protocol.md`](./doc/specs/openharness-protocol.md) · [OpenHarness repo](https://github.com/SynSwarm/OpenHarness) |
 | Plugin TPAVR guide | [`doc/extension/plugin-tpavr-guide.md`](./doc/extension/plugin-tpavr-guide.md) |
+| Docker deployment | [`doc/deployment/docker.md`](./doc/deployment/docker.md) |
+| GitHub About setup | [`doc/deployment/github-about.md`](./doc/deployment/github-about.md) (Description · Topics) |
+| Release checklist | [`doc/deployment/release.md`](./doc/deployment/release.md) |
+| Changelog | [`CHANGELOG.md`](./CHANGELOG.md) |
 | Repo layout | [`STRUCTURE.md`](./STRUCTURE.md) |
 | Doc index | [`doc/README.md`](./doc/README.md) |
 | Examples | [`examples/minimal/`](./examples/minimal/) · [`examples/feishu-order/`](./examples/feishu-order/) |

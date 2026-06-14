@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "deskharness"
 version = "0.1.0"
-description = "Open-source Thin Harness Engine"
+description = "Thin Integration Harness Engine for SMEs — OpenHarness protocol, pluggable Shell/Brain/plugins"
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = ">=3.11"
@@ -23,6 +23,9 @@ dev = [
   "pytest>=8.3",
   "pytest-asyncio>=0.24",
   "ruff>=0.8",
+]
+redis = [
+  "redis>=5.0",
 ]
 
 [project.scripts]

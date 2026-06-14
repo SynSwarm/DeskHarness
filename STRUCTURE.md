@@ -13,7 +13,12 @@ DeskHarness/
 │   ├── plugin_scaffold.py     # 插件脚手架模板
 │   ├── api/
 │   │   ├── openharness.py     # GET /health · POST /invoke
-│   │   └── shells.py          # POST /shells/webhook-generic/inbound
+│   │   ├── shells.py          # POST /shells/.../inbound
+│   │   ├── metrics.py         # GET /metrics
+│   │   ├── debug.py           # /debug/routes · dry-run
+│   │   └── callbacks.py       # async-webhook 回调
+│   ├── middleware/
+│   │   └── rate_limit.py
 │   ├── services/              # invoke、runtime、brain_factory
 │   └── schemas/               # OH / Brain / Plugin / manifest DTO
 │
@@ -21,14 +26,20 @@ DeskHarness/
 │   ├── engine.py              # Turn 调度
 │   ├── session_store.py       # SQLite Session
 │   ├── router.py              # routes.yaml（R）
-│   ├── dispatcher.py          # PluginCommand 网关
+│   ├── dispatcher.py          # local-script · sync-http · async-webhook
 │   ├── plugin_loader.py       # manifest 发现与 handler 加载
+│   ├── plugin_sandbox.py      # 超时 / subprocess 沙箱
+│   ├── async_tasks.py         # async-webhook 任务
+│   ├── structured_log.py      # JSONL 日志
+│   ├── metrics.py · rate_limit.py
 │   ├── brain_client.py        # mock / http Brain
-│   ├── brain_prompt_template.py  # prompt-template Brain
-│   └── runtime/               # 验收代理、compaction 占位
+│   ├── brain_prompt_template.py
+│   └── runtime/
+│       └── compaction.py      # 长会话压缩
 │
 ├── configs/
 │   ├── config.template.yaml
+│   ├── config.docker.yaml     # 官方镜像默认配置
 │   ├── routes.yaml
 │   ├── brain.yaml
 │   └── brain.prompt-template.yaml
@@ -39,16 +50,20 @@ DeskHarness/
 ├── plugins/                   # 扁平；plugin_type: shell | plugin
 │   ├── webhook-generic/       # Shell（adapter.py）
 │   ├── feishu-bot/            # Shell 占位
-│   ├── noop/ · echo/          # 业务插件（handler.py）
-│   └── order-lookup/          # sync-http 占位（Phase 3）
+│   ├── noop/ · echo/          # local-script 插件
+│   ├── order-lookup/          # sync-http
+│   └── async-demo/            # async-webhook
 │
 ├── memory/sessions/ · memory/logs/
 ├── schemas/                   # JSON Schema + OH 金样
-├── examples/minimal/          # Dockerfile · docker-compose.yml
+├── Dockerfile                 # 官方 Engine 镜像
+├── examples/minimal/          # docker-compose · mock sidecar
 ├── tests/
 │   ├── contract/openharness/
 │   └── integration/
 ├── doc/
+│   └── deployment/            # Docker · release 清单
+├── CHANGELOG.md
 ├── PROGRESS.md
 └── STRUCTURE.md
 ```
@@ -84,6 +99,9 @@ core/         → memory/、configs/
 | 插件加载 | `core/plugin_loader.py` |
 | Shell 入站 | `app/api/shells.py`、`plugins/<shell-id>/adapter.py` |
 | Brain 适配 | `core/brain_client.py`、`core/brain_prompt_template.py` |
+| Metrics / Debug | `app/api/metrics.py`、`app/api/debug.py` |
+| async 回调 | `app/api/callbacks.py`、`core/async_tasks.py` |
+| Docker / 发布 | 根目录 `Dockerfile`、`doc/deployment/` |
 
 ---
 
@@ -92,3 +110,5 @@ core/         → memory/、configs/
 - [架构](./doc/architecture/architecture.md)
 - [扩展点](./doc/extension/extension-points.md)
 - [进度](./PROGRESS.md)
+- [变更日志](./CHANGELOG.md)
+- [发布清单](./doc/deployment/release.md)

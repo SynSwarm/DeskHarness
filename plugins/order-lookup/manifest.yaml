@@ -4,6 +4,7 @@ version: 0.1.0
 api_version: "0.2"
 execution:
   mode: sync-http
+  endpoint: "http://127.0.0.1:8091/plugins/order-lookup"
   timeout_ms: 5000
 commands:
   - name: query

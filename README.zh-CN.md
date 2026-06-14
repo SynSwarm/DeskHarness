@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![OpenHarness](https://img.shields.io/badge/Protocol-OpenHarness-green.svg)](https://github.com/SynSwarm/OpenHarness)
+[![Release](https://img.shields.io/badge/release-v0.1.0-blue.svg)](CHANGELOG.md)
 
 **开源 Thin Harness Engine** — 用清晰契约解耦 **Shell**、**Engine**、**Brain** 与 **插件**。
 
@@ -30,7 +31,7 @@
 
 **互补而非竞争：** 完全可以用 LangChain 实现 Brain，再接入 DeskHarness 负责编排与契约 — 既保留推理能力，又避免被单一框架绑死。
 
-**当前状态：** Phase 1 MVP 与 **Phase 2 插件体系** 已交付 — 含插件加载器、`webhook-generic` Shell、`docker compose` 最小栈与 `deskharness plugin new`。下一步 Phase 3 生产化，见 [路线图](#路线图)。
+**当前状态：** **v0.1.0 发布候选** — Phase 0–3 已完成（Thin Engine 生产就绪）。见 [CHANGELOG](CHANGELOG.md)（含 [已知限制](CHANGELOG.md#known-limitations-v010)）与 [发布清单](doc/deployment/release.md)。Phase 4 下一步：飞书 Demo、文档站。
 
 ---
 
@@ -53,9 +54,20 @@
 
 **T**arget · **P**lan · **A**ction · **V**erify · **R**oute 不只是一次对话（Turn）的外壳，而是贯穿插件 handler 内部、单条命令、整次回合的 **分形结构** — 无论你从哪个尺度调试，看到的逻辑骨架都是一致的。这会显著降低大型 AI 应用的认知与维护成本。详见架构文档 [§8 TPAVR](doc/architecture/architecture.md#8-tpavrr-公理叙事脊梁)。
 
+### v0.1.0 已交付
+
+- **OpenHarness** invoke + **webhook-generic** Shell（`POST /shells/webhook-generic/inbound`）
+- **插件执行**：`local-script` · `sync-http` · `async-webhook` · `in-process` — 内置 `noop` / `echo` / `order-lookup` / `async-demo`
+- **Brain 适配**：`mock` · `http` · `prompt-template`（零 LLM 规则 YAML）
+- **运维可观测**：`/metrics` · Turn 审计日志 · `/debug/routes` · `/debug/dry-run` · 可选 rate limit
+- **Session**：默认 SQLite，可选 Redis（`pip install deskharness[redis]`）
+- **部署**：官方 Docker 镜像（`ghcr.io/synswarm/deskharness`）· `docker compose` 示例 · `deskharness plugin new` 脚手架
+
+**Phase 4 计划：** `feishu-bot` Shell · `examples/feishu-order/` 端到端 Demo · MkDocs 文档站。
+
 ---
 
-## 快速开始（约 30 秒）
+## 快速开始
 
 需要 Python 3.11+。
 
@@ -84,7 +96,7 @@ curl -s -X POST http://127.0.0.1:8080/openharness/invoke \
   -H 'Content-Type: application/json' \
   -d '{"protocol_version":"1.0.0","request_id":"req_noop","request":{"context":{"session_id":"sess_noop","user_intent":"please trigger-noop"}}}'
 
-# Webhook Shell（Phase 2）
+# Webhook Shell
 curl -s -X POST http://127.0.0.1:8080/shells/webhook-generic/inbound \
   -H 'Content-Type: application/json' \
   -d '{"text":"Hello from webhook","session_id":"sess_demo"}'
@@ -101,6 +113,15 @@ pytest tests/ -q
 ```bash
 docker compose -f examples/minimal/docker-compose.yml up --build
 ```
+
+**官方镜像**（GHCR 发布 tag 后）：
+
+```bash
+docker run -d -p 8080:8080 ghcr.io/synswarm/deskharness:latest
+# 或：docker compose -f examples/minimal/docker-compose.image.yml up -d
+```
+
+详见 [`doc/deployment/docker.md`](doc/deployment/docker.md)。
 
 **脚手架新建插件：**
 
@@ -155,10 +176,10 @@ flowchart LR
 
 | 层 | 职责 | 示例 |
 |----|------|------|
-| **Shell** | 采集意图、渲染回复；渠道适配 | `feishu-bot`、`webhook-generic` |
+| **Shell** | 采集意图、渲染回复；渠道适配 | `webhook-generic`（已交付）· `feishu-bot`（Phase 4） |
 | **Engine** | OpenHarness 端点、Session、路由、插件网关 | `app/` + `core/` |
 | **Brain** | LLM / RAG 推理；输出 Target + Plan（T+P） | 外置 HTTP 服务（可用 LangChain 实现） |
-| **Plugin** | 机械执行；Action + Verify（A+V） | `order-lookup`、`noop` |
+| **Plugin** | 机械执行；Action + Verify（A+V） | `noop` · `echo` · `order-lookup` · `async-demo` |
 
 **记法：** Brain 思考，插件执行，Engine 编排。Shell 仅通过 [OpenHarness](https://github.com/SynSwarm/OpenHarness) 与 Engine 通信。
 
@@ -180,7 +201,7 @@ flowchart LR
 |---------|----------|
 | 多渠道 Bot（飞书、Telegram、Webhook）共用同一 Brain | 拖拽式 Agent 搭建（见 Dify、扣子） |
 | 换大模型供应商而不重写插件 | 一体化 RAG + 控制台平台 |
-| 中小企业：单进程、SQLite、无需 K8s | 复杂多 Agent 推理图 |
+| 中小企业：单进程部署，SQLite 默认 / Redis 可选，官方 Docker，无需 K8s | 复杂多 Agent 推理图 |
 | 无头集成进现有后端 | 在 Brain 层替代 LangChain |
 
 ---
@@ -197,7 +218,7 @@ DeskHarness **补充** Agent 框架 — 位于 **集成与契约** 层。
 | **渠道** | 可插拔 Shell 插件 | 自备接入 | 内置应用 | 连接器 |
 | **业务逻辑** | 插件层（A+V） | Tools / 自定义代码 | 工作流节点 | 工作流节点 |
 | **Session 真源** | Engine 持有 `session_id` | 因框架而异 | 平台托管 | 按工作流 |
-| **部署** | 单进程 + KV | 库 / 多样 | 托管或自建 | 自建 SaaS |
+| **部署** | 单进程；SQLite / 可选 Redis；官方 Docker | 库 / 多样 | 托管或自建 | 自建 SaaS |
 | **UI** | 无头（Headless） | 无 / 可选 | 完整控制台 | 可视化编辑器 |
 
 Agent 框架回答 *「LLM 该怎么推理？」*  
@@ -223,10 +244,10 @@ Engine 不思考、不执行 — 只路由并持有 Session 真源。
 | Phase 0 | 架构、协议、仓库结构 | ✅ 完成 |
 | Phase 1 | Engine MVP — invoke → Brain → 插件闭环 | ✅ 完成 |
 | Phase 2 | 插件加载器、Shell API、`docker compose`、脚手架 CLI | ✅ 完成 |
-| Phase 3 | 生产就绪 — Redis KV、Docker 镜像、验收代理、指标 | 🚧 下一步 |
-| Phase 4 | 生态 — 文档站、插件 SDK、更多 Shell | 计划中 |
+| Phase 3 | 结构化日志、metrics、Redis Session、sync-http、debug、Docker GHCR | ✅ 完成 |
+| Phase 4 | `feishu-order` Demo、`feishu-bot` Shell、文档站、插件 SDK | 🚧 下一步 |
 
-详情：[`doc/roadmap/phase-plan.md`](./doc/roadmap/phase-plan.md) · 进度：[`PROGRESS.md`](./PROGRESS.md)
+详情：[`doc/roadmap/phase-plan.md`](./doc/roadmap/phase-plan.md) · 进度：[`PROGRESS.md`](./PROGRESS.md) · 变更：[`CHANGELOG.md`](./CHANGELOG.md)
 
 ---
 
@@ -237,6 +258,10 @@ Engine 不思考、不执行 — 只路由并持有 Session 真源。
 | 架构（公开真源） | [`doc/architecture/architecture.md`](./doc/architecture/architecture.md) |
 | OpenHarness 协议 | [`doc/specs/openharness-protocol.md`](./doc/specs/openharness-protocol.md) · [OpenHarness 仓库](https://github.com/SynSwarm/OpenHarness) |
 | 插件 TPAVR 指南 | [`doc/extension/plugin-tpavr-guide.md`](./doc/extension/plugin-tpavr-guide.md) |
+| Docker 部署 | [`doc/deployment/docker.md`](./doc/deployment/docker.md) |
+| GitHub About | [`doc/deployment/github-about.md`](./doc/deployment/github-about.md)（Description · Topics） |
+| 发布清单 | [`doc/deployment/release.md`](./doc/deployment/release.md) |
+| 变更日志 | [`CHANGELOG.md`](./CHANGELOG.md) |
 | 目录结构 | [`STRUCTURE.md`](./STRUCTURE.md) |
 | 文档索引 | [`doc/README.md`](./doc/README.md) |
 | 示例 | [`examples/minimal/`](./examples/minimal/) · [`examples/feishu-order/`](./examples/feishu-order/) |

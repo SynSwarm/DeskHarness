@@ -94,5 +94,10 @@ def test_cli_plugin_new(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None
 
 
 def test_docker_compose_files_exist() -> None:
-    assert (ROOT / "examples/minimal/Dockerfile").is_file()
+    assert (ROOT / "Dockerfile").is_file()
+    assert (ROOT / "configs/config.docker.yaml").is_file()
+    assert (ROOT / "CHANGELOG.md").is_file()
+    assert (ROOT / "doc/deployment/release.md").is_file()
     assert (ROOT / "examples/minimal/docker-compose.yml").is_file()
+    assert (ROOT / "examples/minimal/docker-compose.image.yml").is_file()
+    assert (ROOT / ".github/workflows/docker-publish.yml").is_file()

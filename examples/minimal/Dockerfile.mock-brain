@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+# Optional HTTP mock Brain sidecar (profile: http-brain)
+
+FROM python:3.11-slim
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+COPY pyproject.toml README.md LICENSE ./
+COPY app ./app
+COPY core ./core
+COPY pkg ./pkg
+COPY examples/minimal/mock_brain_server.py ./examples/minimal/mock_brain_server.py
+
+RUN pip install --no-cache-dir .
+
+EXPOSE 8090
+
+CMD ["python", "examples/minimal/mock_brain_server.py"]

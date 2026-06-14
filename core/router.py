@@ -54,6 +54,26 @@ class Router:
         raw = self._routing.get("intent_descriptions") or {}
         return dict(raw) if isinstance(raw, dict) else {}
 
+    def export_routes(self) -> dict[str, Any]:
+        return {
+            "routing": self._routing,
+            "routes": self._routes,
+            "fallback": self._fallback,
+        }
+
+    def dry_run(self, brain: BrainResponse) -> dict[str, Any]:
+        decision = brain.decision
+        steps = self.plan_steps_from_brain(brain)
+        return {
+            "mode": self.mode,
+            "intent": decision.intent,
+            "confidence": decision.confidence,
+            "plan_steps": [step.model_dump(mode="json") for step in steps],
+            "immediate_reply": self.immediate_reply(decision),
+            "allowed_plugins": sorted(self.allowed_plugins),
+            "available_intents": self.available_intents(),
+        }
+
     def brain_fallback_reply(self, *, on_timeout: bool = False) -> str:
         key = "on_brain_timeout" if on_timeout else "on_brain_error"
         block = self._fallback.get(key) or {}
